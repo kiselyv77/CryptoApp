@@ -107,7 +107,8 @@ fun CoinItem(
             )
         }
 
-        //viewModel.onEvent(CoinListEvent.GetOhlc(coin.id))
+
+        viewModel.onEvent(CoinListEvent.GetOhlc(coin.id))
 
         val priceChangeTaday = state.ohlcs[coin.id]?.first()?.close?.let {
             state.ohlcs[coin.id]?.last()?.close?.div(
