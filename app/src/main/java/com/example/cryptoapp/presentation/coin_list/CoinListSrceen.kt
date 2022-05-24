@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.cryptoapp.presentation.coin_list.components.CoinItem
 import com.example.cryptoapp.presentation.coin_list.components.SearchBar
 import com.example.cryptoapp.presentation.coin_list.components.SearchState
@@ -35,6 +36,7 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -142,6 +144,7 @@ fun CoinListScreen(
                             CoinItem(
                                 coin = coin,
                                 onItemClick = {
+                                    viewModel.viewModelScope.cancel()
                                     navigator.navigate(CoinDetailScreenDestination(coin.id))
                                 },
                             )

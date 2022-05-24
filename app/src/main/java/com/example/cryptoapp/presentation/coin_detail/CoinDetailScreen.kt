@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
 import com.example.cryptoapp.presentation.common.components.line.SolidLineDrawer
+import com.example.cryptoapp.presentation.destinations.CoinDetailScreenDestination
+import com.example.cryptoapp.presentation.destinations.CoinListScreenDestination
 import com.github.tehras.charts.line.LineChart
 import com.github.tehras.charts.line.LineChartData
 import com.github.tehras.charts.line.renderer.xaxis.SimpleXAxisDrawer

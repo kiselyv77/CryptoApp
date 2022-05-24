@@ -9,8 +9,10 @@ import com.example.cryptoapp.domain.use_case.GetCoinsUseCase
 import com.example.cryptoapp.domain.use_case.GetOhlcUseCase
 import com.example.cryptoapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.Closeable
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -107,6 +109,17 @@ class CoinListViewModel @Inject constructor(
 
                 }
         }
+
     }
+
+    override fun onCleared() {
+
+        viewModelScope.cancel()
+        Log.d("cancel", "cancel")
+
+    }
+
+
+
 
 }
