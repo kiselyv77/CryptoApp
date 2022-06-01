@@ -3,5 +3,6 @@
 
     <style name="Theme.CryptoApp" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">#060D2E</item>
+        <item name="android:backgroundTint">#060D2E</item>
     </style>
 </resources>

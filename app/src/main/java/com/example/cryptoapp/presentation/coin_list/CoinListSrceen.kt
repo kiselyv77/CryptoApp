@@ -144,7 +144,7 @@ fun CoinListScreen(
                             CoinItem(
                                 coin = coin,
                                 onItemClick = {
-                                    viewModel.viewModelScope.cancel()
+                                    viewModel.cancelOhlc()
                                     navigator.navigate(CoinDetailScreenDestination(coin.id))
                                 },
                             )

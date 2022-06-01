@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -22,13 +24,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import com.example.cryptoapp.R
+import com.example.cryptoapp.presentation.coin_detail.components.PriceIndicator
+import com.example.cryptoapp.presentation.coin_detail.components.PriceIndicatorPlaceholder
+import com.example.cryptoapp.presentation.coin_detail.consta.Constants.descriptionPlaceholder
 import com.example.cryptoapp.presentation.common.components.line.SolidLineDrawer
 import com.example.cryptoapp.presentation.destinations.CoinDetailScreenDestination
 import com.example.cryptoapp.presentation.destinations.CoinListScreenDestination
@@ -43,7 +55,7 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-
+import kotlinx.coroutines.cancel
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -105,109 +117,105 @@ fun CoinDetailScreen(
             ) {
                 LazyColumn(Modifier.fillMaxSize()) {
                     item {
-                        state.coin?.let {
-                            Row(
-                                modifier = Modifier.padding(bottom = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
+                        Row(
+                            modifier = Modifier.padding(bottom = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
 
+                            ) {
+                            val painter = rememberAsyncImagePainter(
+                                iconUrl,
                             )
-                            {
+
+                            state.coin?.coinId?.also {
                                 Image(
-                                    painter = rememberAsyncImagePainter(iconUrl),
+                                    painter = painter ,
                                     contentDescription = null,
                                     modifier = Modifier.size(64.dp),
                                 )
+                            }?:run{
+                                Image(
+                                    imageVector = Icons.Default.Download ,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp).placeholder(
+                                        color = Color.Gray,
+                                        visible = true,
+                                        highlight = PlaceholderHighlight.shimmer(
+                                            highlightColor = Color.White,
+                                        )
+                                    ),
+                                )
+                            }
+
+
+                            state.coin?.name?.also {
                                 Text(
                                     modifier = Modifier
                                         .fillMaxWidth(0.6f)
                                         .padding(start = 16.dp)
                                         .wrapContentWidth(),
-                                    text = it.name,
+                                    text = it,
                                     style = MaterialTheme.typography.h4,
                                     maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-
+                                    overflow = TextOverflow.Ellipsis
                                 )
-                                if (state.ohlcToday.isNotEmpty()) {
-                                    val price = String.format("%.2f", state.ohlcToday.last().close)
-                                    val priceChangeTaday = state.ohlcToday.first().open.let {
-                                        state.ohlcToday.last().close.div(
-                                            it
-                                        )
-                                    }.minus(1).times(100)
 
-                                    val priceChangeTadayRound = String.format("%.2f", priceChangeTaday)
-
-                                    val colorTextChangeText = if (priceChangeTaday > 0) {
-                                        Color.Green
-                                    } else {
-                                        Color.Red
-                                    }
-                                    val indicator = if (priceChangeTaday > 0) {
-                                        Icons.Default.ArrowDropUp
-                                    } else {
-                                        Icons.Default.ArrowDropDown
-                                    }
-                                    Column() {
-                                        Text(
-                                            modifier = Modifier,
-                                            text = "$${price}",
-                                            style = MaterialTheme.typography.h6,
-                                        )
-                                        Row() {
-                                            Text(
-                                                modifier = Modifier,
-                                                color = colorTextChangeText,
-                                                text = "${priceChangeTadayRound}% today",
-                                                style = MaterialTheme.typography.subtitle2,
+                            } ?:run{
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.6f)
+                                        .padding(start = 16.dp)
+                                        .wrapContentWidth()
+                                        .placeholder(
+                                            color = Color.Gray,
+                                            visible = true,
+                                            highlight = PlaceholderHighlight.shimmer(
+                                                highlightColor = Color.White,
                                             )
-                                            Image(
-                                                modifier = Modifier,
-                                                imageVector = indicator,
-                                                colorFilter = ColorFilter.tint(colorTextChangeText),
-                                                contentDescription = null
-                                            )
-
-                                        }
-
-                                    }
-
-                                }
-                                else {
-                                    Column() {
-                                        Text(
-                                            modifier = Modifier
-                                                .padding(bottom = 8.dp)
-                                                .placeholder(
-                                                    color = Color.Gray,
-                                                    visible = true,
-                                                    highlight = PlaceholderHighlight.shimmer(
-                                                        highlightColor = Color.White,
-                                                    )
-                                                ),
-                                            text = "100000",
-                                            style = MaterialTheme.typography.h6,
-                                        )
-                                        Row() {
-                                            Text(
-                                                modifier = Modifier
-                                                    .placeholder(color = Color.Gray, visible = true ,highlight = PlaceholderHighlight.shimmer(highlightColor = Color.White,)),
-                                                text = "0,000",
-                                                style = MaterialTheme.typography.subtitle2,
-                                            )
-
-                                        }
-
-                                    }
-                                }
+                                        ),
+                                    text = "NameName",
+                                    style = MaterialTheme.typography.h4,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             }
 
+                            if (state.ohlcToday.isNotEmpty()) {
+                                val price = String.format("%.2f", state.ohlcToday.last().close)
+                                val priceChangeTaday = state.ohlcToday.first().open.let {
+                                    state.ohlcToday.last().close.div(
+                                        it
+                                    )
+                                }.minus(1).times(100)
+                                PriceIndicator(price = price, priceChangeTaday = priceChangeTaday)
+                            }
+                            else {
+                                PriceIndicatorPlaceholder()
+                            }
+                        }
+                        state.coin?.description?.also{
                             Text(
                                 modifier = Modifier.padding(bottom = 16.dp),
-                                text = it.description,
+                                text = it,
+                                style = MaterialTheme.typography.h6,
+                            )
+
+                        }?:run{
+                            Text(
+                                modifier = Modifier
+                                    .padding(bottom = 16.dp)
+                                    .placeholder(
+                                        color = Color.Gray,
+                                        visible = true,
+                                        highlight = PlaceholderHighlight.shimmer(
+                                            highlightColor = Color.White,
+                                        )
+                                    ),
+                                text = descriptionPlaceholder,
                                 style = MaterialTheme.typography.h6,
                             )
                         }
+
+
                         val dataList = arrayListOf<LineChartData.Point>()
                         if (!state.isLoading && !state.isError) {
                             state.ohlcHistorical.forEach{
@@ -222,8 +230,8 @@ fun CoinDetailScreen(
                                     .padding(16.dp)
                                     .pointerInput(Unit) {
                                         detectTransformGestures { _, _, zoom, _ ->
-                                            val addOffset = (zoom-1)*100*-1
-                                            if(!(addOffset>0&&offsetXState.value>30)){
+                                            val addOffset = (zoom - 1) * 100 * -1
+                                            if (!(addOffset > 0 && offsetXState.value > 30)) {
                                                 offsetXState.value += addOffset
                                                 //if(addOffset<0) labelRatioXState.value -= 1 else labelRatioXState.value+=1
 

@@ -9,9 +9,7 @@ import com.example.cryptoapp.domain.use_case.GetCoinsUseCase
 import com.example.cryptoapp.domain.use_case.GetOhlcUseCase
 import com.example.cryptoapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.Closeable
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -26,6 +24,13 @@ class CoinListViewModel @Inject constructor(
 
     private val _state = mutableStateOf(CoinListState())
     val state: State<CoinListState> = _state
+
+
+    private var job = Job()
+        get() {
+            if (field.isCancelled) field = Job()
+            return field
+        }
 
     init{
         getCoinList()
@@ -73,6 +78,7 @@ class CoinListViewModel @Inject constructor(
 
                 }
         }
+
     }
 
     private fun getCoinOhlc(coinId: String) {
@@ -86,7 +92,7 @@ class CoinListViewModel @Inject constructor(
 
 
         Log.d("view_model2", "$dataOpenString $dataCloseString")
-        viewModelScope.launch {
+        viewModelScope.launch(job) {
             getOhlcUseCase.getOhlc(coinId, dataOpenString, dataCloseString)
                 .collect{ result ->
                     when(result){
@@ -112,10 +118,13 @@ class CoinListViewModel @Inject constructor(
 
     }
 
-    override fun onCleared() {
+    fun cancelOhlc(){
+        job.cancel()
+    }
 
-        viewModelScope.cancel()
-        Log.d("cancel", "cancel")
+    override fun onCleared() {
+        super.onCleared()
+        Log.d("cancel", "cancel3")
 
     }
 
